@@ -22,6 +22,7 @@ public class IngredientServiceImpl implements IngredientService {
     private final RecipeRepository recipeRepository;
     private final UnitOfMeasureRepository unitOfMeasureRepository;
 
+
     public IngredientServiceImpl(IngredientToIngredientCommand ingredientToIngredientCommand,
                                  IngredientCommandToIngredient ingredientCommandToIngredient,
                                  RecipeRepository recipeRepository, UnitOfMeasureRepository unitOfMeasureRepository) {
@@ -107,6 +108,34 @@ public class IngredientServiceImpl implements IngredientService {
             //to do check for fail
             return ingredientToIngredientCommand.convert(savedIngredientOptional.get());
         }
+
+    }
+
+    @Override
+    public void deleteById(Long recipeId, Long idToDelete) {
+        Optional<Recipe> recipeOptional=recipeRepository.findById((recipeId));
+
+        if ((recipeOptional.isPresent())){
+            Recipe recipe = recipeOptional.get();
+            log.debug("Recipe Found");
+
+            Optional<Ingredient> optionalIngredient= recipe.getIngredients()
+                    .stream()
+                    .filter(ingredient -> ingredient.getId().equals(idToDelete)).findFirst();
+
+            if (optionalIngredient.isPresent()){
+                Ingredient ingredient = optionalIngredient.get();
+                log.debug("Ingredent found");
+                ingredient.setRecipe(null);
+                recipe.getIngredients().remove(optionalIngredient.get());
+                recipeRepository.save(recipe);
+            }
+        }
+        else{
+            log.debug("Ingredient not found");
+        }
+
+
 
     }
 }
